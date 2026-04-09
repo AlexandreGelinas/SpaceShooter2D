@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -5,6 +6,8 @@ public class Player : MonoBehaviour
     [Header("Propriétés joueur")]
     [SerializeField] private float _playerSpeed = 8f;
     [SerializeField] private float _maxHeight = 1f;
+    public float PlayerSpeed => _playerSpeed;
+    [SerializeField] private int _playerLife = 3;
 
     [Header("Propriétés attaques")]
     [SerializeField] private GameObject _laserPrefab;
@@ -29,6 +32,8 @@ public class Player : MonoBehaviour
         _inputSystem_Actions.Player.Attack.started += _ => _isFiring = true;
         _inputSystem_Actions.Player.Attack.canceled+= _ => _isFiring = false;
 
+        GameManager.Instance.OnEnemyDestroyed += GameManager_OnEnemyDestroyed;
+
         float halfPlayerWidth = _spriteRenderer.bounds.extents.x;
         float halfPlayerHeight = _spriteRenderer.bounds.extents.y;
 
@@ -41,6 +46,8 @@ public class Player : MonoBehaviour
         //_inputSystem_Actions.Player.Attack.performed += Attack_performed;
     }
 
+   
+
     //private void Attack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
     //{
     //    if (_canFire < Time.time)
@@ -49,13 +56,14 @@ public class Player : MonoBehaviour
     //        _canFire = Time.time + _fireRate;
     //    }
 
-        
+
     //}
 
     private void OnDestroy()
     {
         _inputSystem_Actions.Player.Disable();
         //_inputSystem_Actions.Player.Attack.performed-= Attack_performed;
+        GameManager.Instance.OnEnemyDestroyed -= GameManager_OnEnemyDestroyed;
     }
 
     private void Update()
@@ -67,6 +75,23 @@ public class Player : MonoBehaviour
             // Instancier dans le jeu le prefab du laser
             Instantiate(_laserPrefab, transform.position + new Vector3(0f, 0.9f, 0), Quaternion.identity);
             _canFire = Time.time + _fireRate;
+        }
+    }
+
+    private void GameManager_OnEnemyDestroyed(object sender, GameManager.OnEnemyDestroyedEventArgs e)
+    {
+        if(e.DestroyedObjectTag == "Player")
+        {
+            _playerLife--;
+            Debug.Log($"Vies joueur : {_playerLife}");
+            if(_playerLife <= 0)
+            {
+                //Joueur mort, fin de partie
+                Destroy(gameObject);
+                Debug.Log("Fin de partie");
+                SpawnManager spawnManager = FindAnyObjectByType<SpawnManager>();
+                spawnManager.EndSpawning();
+            }
         }
     }
 
