@@ -4,6 +4,7 @@ public class Enemy : MonoBehaviour
 {
     [SerializeField] private float _enemySpeed = 2f;
     [SerializeField] private int _enemyPoints = 100;
+    [SerializeField] private GameObject _explosionPrefab;
 
     private float _halfEnemyWidth;
     private SpriteRenderer _spriteRenderer;
@@ -33,6 +34,7 @@ public class Enemy : MonoBehaviour
         {
             GameManager.Instance.EnemyDestroyed(_enemyPoints, collision.gameObject.tag);
             Destroy(gameObject);
+            Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
             if (collision.gameObject.CompareTag("Laser"))
             {
                 Destroy(collision.gameObject);

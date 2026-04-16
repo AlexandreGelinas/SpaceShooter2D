@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     private int _playerScore = 0;
+    public int PlayerScore => _playerScore;
 
     public event EventHandler<OnEnemyDestroyedEventArgs> OnEnemyDestroyed;
     public class OnEnemyDestroyedEventArgs : EventArgs
@@ -32,7 +33,7 @@ public class GameManager : MonoBehaviour
         if(p_gameObjectTag == "Laser")
         {
             _playerScore += p_enemyPoints;
-            Debug.Log($"Score du joueur: {_playerScore}");
+           
         }
 
         OnEnemyDestroyed?.Invoke(this, new OnEnemyDestroyedEventArgs
@@ -41,3 +42,5 @@ public class GameManager : MonoBehaviour
         });
     }
 }
+
+// Easter Egg ici!!!

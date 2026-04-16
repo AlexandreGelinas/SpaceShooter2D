@@ -8,19 +8,24 @@ public class Player : MonoBehaviour
     [SerializeField] private float _maxHeight = 1f;
     public float PlayerSpeed => _playerSpeed;
     [SerializeField] private int _playerLife = 3;
+    public int PlayerLife => _playerLife;
 
     [Header("Propriétés attaques")]
     [SerializeField] private GameObject _laserPrefab;
     [SerializeField] private float _fireRate = 0.2f;
 
     private InputSystem_Actions _inputSystem_Actions;
-
     private float _minX, _minY, _maxX, _maxY;
-
     private SpriteRenderer _spriteRenderer;
-
     private float _canFire = -1f;
     private bool _isFiring = false;
+
+    private Animator _anim;
+
+    private void Awake()
+    {
+        GameManager.Instance.OnEnemyDestroyed += GameManager_OnEnemyDestroyed;
+    }
 
     private void Start()
     {
@@ -32,8 +37,6 @@ public class Player : MonoBehaviour
         _inputSystem_Actions.Player.Attack.started += _ => _isFiring = true;
         _inputSystem_Actions.Player.Attack.canceled+= _ => _isFiring = false;
 
-        GameManager.Instance.OnEnemyDestroyed += GameManager_OnEnemyDestroyed;
-
         float halfPlayerWidth = _spriteRenderer.bounds.extents.x;
         float halfPlayerHeight = _spriteRenderer.bounds.extents.y;
 
@@ -43,26 +46,14 @@ public class Player : MonoBehaviour
         _minY = mainCamera.ViewportToWorldPoint(new Vector3(0, 0, 0)).y + halfPlayerHeight;
         _maxY = _maxHeight = halfPlayerHeight;
 
-        //_inputSystem_Actions.Player.Attack.performed += Attack_performed;
+        _anim = GetComponent<Animator>();
+
+        
     }
-
-   
-
-    //private void Attack_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
-    //{
-    //    if (_canFire < Time.time)
-    //    {
-    //        Instantiate(_laserPrefab, transform.position + new Vector3(0f, 0.9f, 0), Quaternion.identity);
-    //        _canFire = Time.time + _fireRate;
-    //    }
-
-
-    //}
 
     private void OnDestroy()
     {
         _inputSystem_Actions.Player.Disable();
-        //_inputSystem_Actions.Player.Attack.performed-= Attack_performed;
         GameManager.Instance.OnEnemyDestroyed -= GameManager_OnEnemyDestroyed;
     }
 
@@ -101,6 +92,22 @@ public class Player : MonoBehaviour
         direction2D.Normalize();
 
         transform.Translate(direction2D * Time.deltaTime * _playerSpeed);
+
+        if(direction2D.x < 0)
+        {
+            _anim.SetBool("TurnLeft", true);
+            _anim.SetBool("TurnRight", false);
+        }
+        else if(direction2D.x > 0)
+        {
+            _anim.SetBool("TurnRight", true);
+            _anim.SetBool("TurnLeft", false);
+        }
+        else
+        {
+            _anim.SetBool("TurnLeft", false);
+            _anim.SetBool("TurnRight", false);
+        }
 
         float clampedX = Mathf.Clamp(transform.position.x, _minX, _maxX);
         float clampedY = Mathf.Clamp(transform.position.y, _minY, _maxY);
